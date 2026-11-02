@@ -1,0 +1,25 @@
+# Environment dan kredensial
+.env
+.env.local
+
+# Database lokal
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Binary hasil build
+caku
+caku.exe
+*.exe
+
+# Output editor dan OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Artefak testing lokal
+.playwright-mcp/
+*~
+PLAN.md

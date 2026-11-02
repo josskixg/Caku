@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caku: Catatan Keuangan</title>
+  <link rel="icon" type="image/svg+xml" href="/static/icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #F9FAFB;
+      --surface: #FFFFFF;
+      --surface-subtle: #F3F4F6;
+      --border: #E5E7EB;
+      --border-dark: #D1D5DB;
+      --ink: #111827;
+      --ink-muted: #6B7280;
+      --ink-faint: #9CA3AF;
+      --brand: #0F172A;
+      --emerald: #059669;
+      --emerald-subtle: #ECFDF5;
+      --rose: #DC2626;
+      --rose-subtle: #FEF2F2;
+      --amber: #D97706;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .serif { font-family: 'Newsreader', Georgia, serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: "tnum" 1; }
+
+    /* Top Navigation */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .nav-inner {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+    .brand-link img {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+    }
+    .brand-title {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+      line-height: 1;
+    }
+    .brand-sub {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-muted);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    /* --- Google Sheets status badge / button --- */
+    .gsheet-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      height: 38px;
+      padding: 0 13px;
+      border-radius: 9px;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.12s ease;
+    }
+    .gsheet-status.active {
+      background: var(--emerald-subtle);
+      color: var(--emerald);
+      border-color: #A7F3D0;
+      cursor: default;
+    }
+    .gsheet-status.active .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+    }
+    .gsheet-status.inactive {
+      background: var(--surface);
+      color: var(--ink-muted);
+      border-color: var(--border);
+    }
+    .gsheet-status.inactive:hover {
+      background: var(--surface-subtle);
+      color: var(--ink);
+      border-color: var(--border-dark);
+    }
+    .gsheet-status > svg { width: 14px; height: 14px; }
+
+    /* --- Calendar control --- */
+    .date-field {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+    .date-field > svg {
+      position: absolute;
+      left: 11px;
+      width: 15px;
+      height: 15px;
+      color: var(--ink-muted);
+      pointer-events: none;
+    }
+    .month-picker {
+      font: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      height: 38px;
+      padding: 0 10px 0 34px;
+      cursor: pointer;
+      outline: none;
+      letter-spacing: 0.01em;
+      transition: border-color 0.12s, box-shadow 0.12s, background 0.12s;
+    }
+    .month-picker:hover {
+      border-color: var(--border-dark);
+      background: var(--surface-subtle);
+    }
+    .month-picker:focus-visible {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.09);
+    }
+    .month-picker::-webkit-calendar-picker-indicator {
+      opacity: 0.4;
+      cursor: pointer;
+      margin-left: 4px;
+      transition: opacity 0.12s;
+    }
+    .month-picker::-webkit-calendar-picker-indicator:hover { opacity: 0.9; }
+
+    /* --- Button system, one height and radius --- */
+    .btn {
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      height: 38px;
+      padding: 0 15px;
+      border-radius: 9px;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background 0.12s, border-color 0.12s, color 0.12s, box-shadow 0.12s;
+    }
+    .btn > svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.14);
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary {
+      background: var(--brand);
+      color: #FFFFFF;
+    }
+    .btn-primary:hover { background: #1E293B; }
+    .btn-secondary {
+      background: var(--surface);
+      border-color: var(--border);
+      color: var(--ink);
+    }
+    .btn-secondary:hover {
+      background: var(--surface-subtle);
+      border-color: var(--border-dark);
+    }
+    .btn-ghost-danger {
+      background: transparent;
+      color: var(--rose);
+    }
+    .btn-ghost-danger:hover { background: var(--rose-subtle); }
+
+    /* Layout Container */
+    main {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* KPI Ledger Cards */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 768px) {
+      .kpi-row { grid-template-columns: 1fr; }
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 24px;
+    }
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-muted);
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .kpi-value {
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .kpi-meta {
+      font-size: 12px;
+      color: var(--ink-faint);
+      margin-top: 6px;
+    }
+    .text-emerald { color: var(--emerald); }
+    .text-rose { color: var(--rose); }
+
+    /* Command / Quick-Input Bar */
+    .command-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+    }
+    .command-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .command-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .command-hint {
+      font-size: 12px;
+      color: var(--ink-muted);
+    }
+    .command-hint code {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--surface-subtle);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--ink);
+      font-size: 11px;
+    }
+    .input-bar {
+      display: flex;
+      gap: 10px;
+    }
+    @media (max-width: 640px) {
+      .input-bar { flex-direction: column; }
+    }
+    .text-input {
+      flex: 1;
+      font-family: inherit;
+      font-size: 14px;
+      height: 38px;
+      padding: 0 14px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: #FFFFFF;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.12s, box-shadow 0.12s;
+    }
+    .text-input:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+    }
+
+    /* Visual Data Grid (Charts) */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 900px) {
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+    .chart-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .panel-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink);
+    }
+    .panel-sub {
+      font-size: 12px;
+      color: var(--ink-faint);
+    }
+    .chart-body {
+      position: relative;
+      height: 220px;
+      width: 100%;
+    }
+
+    /* Ledger Table */
+    .ledger-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .ledger-head {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    /* --- Filter bar & search input --- */
+    .filter-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .search-box {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+    .search-box > svg {
+      position: absolute;
+      left: 11px;
+      width: 14px;
+      height: 14px;
+      color: var(--ink-faint);
+      pointer-events: none;
+    }
+    .search-input {
+      font: inherit;
+      font-size: 13px;
+      height: 34px;
+      padding: 0 12px 0 32px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--ink);
+      outline: none;
+      width: 210px;
+      transition: border-color 0.12s, box-shadow 0.12s, width 0.18s ease;
+    }
+    .search-input:hover { border-color: var(--border-dark); }
+    .search-input:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+      width: 240px;
+    }
+    .search-input::placeholder { color: var(--ink-faint); }
+
+    .type-filter-pills {
+      display: inline-flex;
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .pill-btn {
+      font: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink-muted);
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: background 0.1s, color 0.1s;
+    }
+    .pill-btn:hover { color: var(--ink); }
+    .pill-btn.active {
+      background: var(--surface);
+      color: var(--ink);
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    }
+
+    /* --- Pagination bar --- */
+    .ledger-foot {
+      padding: 12px 24px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--ink-muted);
+    }
+    .pagination-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .page-link {
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      height: 30px;
+      min-width: 30px;
+      padding: 0 10px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--ink);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: background 0.1s, border-color 0.1s, color 0.1s;
+    }
+    .page-link:hover:not(.disabled) {
+      background: var(--surface-subtle);
+      border-color: var(--border-dark);
+    }
+    .page-link.disabled {
+      color: var(--ink-faint);
+      border-color: #F3F4F6;
+      background: #FAFAFA;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+    .page-link > svg { width: 13px; height: 13px; }
+
+    /* --- Table content styles --- */
+    .table-scroll {
+      overflow-x: auto;
+    }
+    table.ledger {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+    table.ledger th {
+      padding: 10px 20px;
+      background: var(--surface-subtle);
+      color: var(--ink-muted);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    table.ledger td {
+      padding: 13px 20px;
+      border-bottom: 1px solid var(--border);
+      color: var(--ink);
+      vertical-align: middle;
+    }
+    table.ledger tr:last-child td { border-bottom: none; }
+    table.ledger tr:hover td { background: #FAFAFA; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+    .badge-income { background: var(--emerald-subtle); color: var(--emerald); }
+    .badge-expense { background: var(--rose-subtle); color: var(--rose); }
+
+    .tag-source {
+      font-size: 11px;
+      color: var(--ink-muted);
+    }
+    .btn-action {
+      background: none;
+      border: 1px solid transparent;
+      color: var(--ink-faint);
+      cursor: pointer;
+      padding: 5px 6px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.12s ease;
+    }
+    .btn-action > svg { width: 14px; height: 14px; }
+    .btn-action.edit:hover {
+      color: var(--ink);
+      background: var(--surface-subtle);
+      border-color: var(--border);
+    }
+    .btn-action.delete:hover {
+      color: var(--rose);
+      background: var(--rose-subtle);
+      border-color: #FECACA;
+    }
+
+    /* --- Modal Sheet --- */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(2px);
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal-sheet {
+      background: #FFFFFF;
+      border-radius: 14px;
+      max-width: 460px;
+      width: 100%;
+      padding: 28px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 9px 12px;
+      font-family: inherit;
+      font-size: 13px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      outline: none;
+      background: #FFFFFF;
+    }
+    .form-control:focus { border-color: var(--brand); }
+    .type-switcher {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .type-pill {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .type-pill input { display: none; }
+    .type-pill:has(:checked) {
+      border-color: var(--brand);
+      background: var(--surface-subtle);
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="nav-inner">
+      <a href="/" class="brand-link">
+        <img src="/static/icon.svg" alt="Caku">
+        <div>
+          <div class="brand-title">Caku</div>
+          <div class="brand-sub">Catatan Keuangan</div>
+        </div>
+      </a>
+
+      <div class="nav-controls">
+        {{if .IsGSheetActive}}
+        <div class="gsheet-status active" title="Database tersinkronisasi otomatis dengan Google Sheets">
+          <span class="dot"></span>
+          <span>Google Sheets Aktif</span>
+        </div>
+        <button type="button" id="syncAllBtn" onclick="syncAllToSheets()" class="btn btn-secondary" title="Tulis ulang seluruh data lokal ke Google Sheets">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span>Sync Semua</span>
+        </button>
+        {{else}}
+        <button type="button" onclick="toggleGSheetModal()" class="gsheet-status inactive" title="Klik untuk panduan setup Google Sheets">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+          <span>Hubungkan Google Sheets</span>
+        </button>
+        {{end}}
+
+        <form method="GET" action="/">
+          <label class="date-field">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <input type="month" name="month" value="{{.Month}}" onchange="this.form.submit()" class="month-picker" aria-label="Pilih bulan">
+          </label>
+        </form>
+
+        <a href="/export/csv?month={{.Month}}" class="btn btn-secondary">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 10v6m0 0l-3-3m3 3l3-3M4 6a2 2 0 012-2h8l6 6v10a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/></svg>
+          <span>Unduh CSV</span>
+        </a>
+
+        <a href="/logout" class="btn btn-ghost-danger">Keluar</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main>
+    <!-- KPI Row -->
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-label">
+          <span>Pemasukan</span>
+          <span style="font-size: 16px;">↗</span>
+        </div>
+        <div class="kpi-value text-emerald mono">{{rupiah .Summary.TotalIncome}}</div>
+        <div class="kpi-meta">Bulan {{.Month}}</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">
+          <span>Pengeluaran</span>
+          <span style="font-size: 16px;">↘</span>
+        </div>
+        <div class="kpi-value text-rose mono">{{rupiah .Summary.TotalExpense}}</div>
+        <div class="kpi-meta">Bulan {{.Month}}</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">
+          <span>Sisa Saldo Kas</span>
+          <span>:</span>
+        </div>
+        <div class="kpi-value mono">{{rupiah .Summary.NetBalance}}</div>
+        <div class="kpi-meta">{{.Summary.Count}} transaksi tercatat</div>
+      </div>
+    </div>
+
+    <!-- Quick Entry Bar -->
+    <div class="command-box">
+      <div class="command-header">
+        <div class="command-title">Catat Transaksi Baru</div>
+        <div class="command-hint">
+          Ketik natural: <code>-25000 Makan warteg</code> atau <code>+1.5jt Gaji</code>
+        </div>
+      </div>
+
+      <form id="quickForm" onsubmit="submitQuickAdd(event)" class="input-bar">
+        <input type="text" id="quickTextInput" placeholder="Contoh: -35000 Beli bensin motor atau +500k Bonus project" required class="text-input">
+        <button type="submit" class="btn btn-primary">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          <span>Catat</span>
+        </button>
+        <button type="button" onclick="toggleModal()" class="btn btn-secondary">
+          <span>+ Form Rinci</span>
+        </button>
+      </form>
+      <div id="quickFeedback" style="font-size: 12px; margin-top: 8px; display: none;"></div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+      <div class="chart-panel">
+        <div class="panel-head">
+          <div class="panel-title">Arus Kas Harian</div>
+          <div class="panel-sub">{{.Month}}</div>
+        </div>
+        <div class="chart-body">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-panel">
+        <div class="panel-head">
+          <div class="panel-title">Komposisi Beban</div>
+          <div class="panel-sub">Per Kategori</div>
+        </div>
+        <div class="chart-body">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ledger Table -->
+    <div class="ledger-panel">
+      <div class="ledger-head">
+        <div>
+          <div class="command-title">Buku Transaksi</div>
+          <div style="font-size: 12px; color: var(--ink-muted); margin-top: 2px;">Daftar transaksi periode {{.Month}}</div>
+        </div>
+
+        <div class="filter-group">
+          <!-- Type Filter Pills -->
+          <div class="type-filter-pills" role="tablist">
+            <button type="button" class="pill-btn active" data-type="all" onclick="setTypeFilter('all', this)">Semua</button>
+            <button type="button" class="pill-btn" data-type="expense" onclick="setTypeFilter('expense', this)">Pengeluaran</button>
+            <button type="button" class="pill-btn" data-type="income" onclick="setTypeFilter('income', this)">Pemasukan</button>
+          </div>
+
+          <!-- Search Input with Icon -->
+          <div class="search-box">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"/>
+            </svg>
+            <input type="text" id="searchTable" onkeyup="filterTable()" placeholder="Saring transaksi..." class="search-input">
+          </div>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table class="ledger" id="txTable">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Jenis</th>
+              <th>Kategori</th>
+              <th>Keterangan</th>
+              <th>Sumber</th>
+              <th style="text-align: right;">Nominal</th>
+              <th style="text-align: center; width: 50px;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .Transactions}}
+            <tr id="row-{{.ID}}" data-type="{{.Type}}">
+              <td class="mono" style="font-size: 12px; color: var(--ink-muted); white-space: nowrap;">{{formatDate .Date}}</td>
+              <td>
+                {{if eq .Type "income"}}
+                <span class="badge badge-income">+ Pemasukan</span>
+                {{else}}
+                <span class="badge badge-expense">- Pengeluaran</span>
+                {{end}}
+              </td>
+              <td style="font-weight: 500;">{{.Category}}</td>
+              <td>{{.Description}}</td>
+              <td class="tag-source">
+                {{if eq .Source "telegram"}}Telegram Bot{{else}}Web{{end}}
+              </td>
+              <td class="mono" style="text-align: right; font-weight: 600; white-space: nowrap;">
+                {{if eq .Type "income"}}
+                <span class="text-emerald">+ {{rupiah .Amount}}</span>
+                {{else}}
+                <span class="text-rose">- {{rupiah .Amount}}</span>
+                {{end}}
+              </td>
+              <td style="text-align: center; white-space: nowrap;">
+                <button onclick="openEditModal({{.ID}})" class="btn-action edit" title="Edit transaksi">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                </button>
+                <button onclick="deleteTx({{.ID}})" class="btn-action delete" title="Hapus transaksi">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </td>
+            </tr>
+            {{else}}
+            <tr>
+              <td colspan="7" style="padding: 48px 24px; text-align: center; color: var(--ink-muted);">
+                Belum ada transaksi di bulan ini. Gunakan bar input di atas atau bot Telegram untuk mencatat.
+              </td>
+            </tr>
+            {{end}}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Footer -->
+      <div class="ledger-foot">
+        <div>
+          Halaman <b>{{.Page}}</b> dari <b>{{.TotalPages}}</b> · {{.TotalCount}} transaksi
+        </div>
+        <div class="pagination-actions">
+          {{if .HasPrev}}
+          <a href="/?month={{.Month}}&page={{.PrevPage}}" class="page-link">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            <span>Prev</span>
+          </a>
+          {{else}}
+          <span class="page-link disabled">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            <span>Prev</span>
+          </span>
+          {{end}}
+
+          {{if .HasNext}}
+          <a href="/?month={{.Month}}&page={{.NextPage}}" class="page-link">
+            <span>Next</span>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </a>
+          {{else}}
+          <span class="page-link disabled">
+            <span>Next</span>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </span>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Detailed Add Modal -->
+  <div id="modalSheet" class="modal-overlay hidden">
+    <div class="modal-sheet">
+      <div class="modal-head">
+        <div style="font-weight: 600; font-size: 15px;">Tambah Transaksi Rinci</div>
+        <button onclick="toggleModal()" style="border: none; background: none; font-size: 18px; cursor: pointer; color: var(--ink-muted);">✕</button>
+      </div>
+
+      <form id="modalForm" onsubmit="submitModal(event)">
+        <div class="type-switcher">
+          <label class="type-pill">
+            <input type="radio" name="modalType" value="expense" checked>
+            <span style="color: var(--rose);">Pengeluaran</span>
+          </label>
+          <label class="type-pill">
+            <input type="radio" name="modalType" value="income">
+            <span style="color: var(--emerald);">Pemasukan</span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label for="modalAmount">Nominal (Rp)</label>
+          <input type="number" id="modalAmount" required min="1" placeholder="50000" class="form-control mono">
+        </div>
+
+        <div class="form-group">
+          <label for="modalCategory">Kategori</label>
+          <select id="modalCategory" class="form-control">
+            <option value="Makanan & Minuman">Makanan & Minuman</option>
+            <option value="Transportasi">Transportasi</option>
+            <option value="Belanja & Kebutuhan">Belanja & Kebutuhan</option>
+            <option value="Tagihan & Utilitas">Tagihan & Utilitas</option>
+            <option value="Hiburan & Rekreasi">Hiburan & Rekreasi</option>
+            <option value="Kesehatan">Kesehatan</option>
+            <option value="Gaji & Upah">Gaji & Upah</option>
+            <option value="Investasi & Bisnis">Investasi & Bisnis</option>
+            <option value="Lain-lain">Lain-lain</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="modalDesc">Keterangan</label>
+          <input type="text" id="modalDesc" required placeholder="Contoh: Makan siang di kantor" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="modalDate">Tanggal</label>
+          <input type="date" id="modalDate" class="form-control">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; height: 42px; margin-top: 8px;">
+          Simpan Transaksi
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Google Sheets Setup Modal -->
+  <div id="gsheetModal" class="modal-overlay hidden">
+    <div class="modal-sheet" style="max-width: 580px;">
+      <div class="modal-head">
+        <div>
+          <div style="font-weight: 700; font-size: 16px; color: var(--ink);">Hubungkan Google Sheets sebagai Database</div>
+          <div style="font-size: 12px; color: var(--ink-muted); margin-top: 2px;">Setiap mutasi otomatis tercatat sebagai baris di spreadsheet Anda</div>
+        </div>
+        <button onclick="toggleGSheetModal()" style="border: none; background: none; font-size: 18px; cursor: pointer; color: var(--ink-muted);">✕</button>
+      </div>
+
+      <div style="font-size: 13px; line-height: 1.6; color: var(--ink); display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: flex; gap: 10px;">
+          <div style="font-weight: 700; background: var(--surface-subtle); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;">1</div>
+          <div>Buka spreadsheet Google Sheets Anda &rarr; klik menu <b>Extensions</b> &rarr; <b>Apps Script</b>.</div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <div style="font-weight: 700; background: var(--surface-subtle); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;">2</div>
+          <div>Hapus kode yang ada, lalu salin kode script di bawah ini:
+            <div style="margin-top: 8px; position: relative;">
+              <textarea id="gsheetCode" readonly class="mono" style="width: 100%; height: 110px; font-size: 11px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: #FAFAFA; resize: none;"></textarea>
+              <button type="button" onclick="copyGSheetCode()" class="btn btn-secondary" style="position: absolute; right: 8px; bottom: 8px; height: 28px; font-size: 11px; padding: 0 10px;">
+                Salin Script
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <div style="font-weight: 700; background: var(--surface-subtle); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;">3</div>
+          <div>
+            Klik <b>Deploy</b> &rarr; <b>New deployment</b> &rarr; Pilih type <b>Web app</b>.<br>
+            Atur <i>Execute as:</i> <b>Me</b> dan <i>Who has access:</i> <b>Anyone</b>.<br>
+            Copy URL Web App lalu simpan di file <code>.env</code>:
+            <pre class="mono" style="margin-top: 6px; padding: 8px 12px; background: var(--surface-subtle); border-radius: 6px; font-size: 11px;">GOOGLE_SHEET_WEBAPP_URL=https://script.google.com/macros/s/.../exec</pre>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+        <button type="button" onclick="toggleGSheetModal()" class="btn btn-secondary">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Transaction Modal -->
+  <div id="editModal" class="modal-overlay hidden">
+    <div class="modal-sheet" style="max-width: 460px;">
+      <div class="modal-head">
+        <div>
+          <div style="font-weight: 700; font-size: 16px; color: var(--ink);">Edit Transaksi</div>
+          <div style="font-size: 12px; color: var(--ink-muted); margin-top: 2px;">Perubahan otomatis tersinkron ke Google Sheets</div>
+        </div>
+        <button onclick="toggleEditModal()" style="border: none; background: none; font-size: 18px; cursor: pointer; color: var(--ink-muted);">&#10005;</button>
+      </div>
+
+      <form id="editForm" onsubmit="submitEdit(event)">
+        <input type="hidden" id="editID">
+
+        <div class="type-switcher">
+          <label class="type-pill">
+            <input type="radio" name="editType" value="expense" checked>
+            <span style="color: var(--rose);">Pengeluaran</span>
+          </label>
+          <label class="type-pill">
+            <input type="radio" name="editType" value="income">
+            <span style="color: var(--emerald);">Pemasukan</span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label for="editAmount">Nominal (Rp)</label>
+          <input type="number" id="editAmount" required min="1" class="form-control mono">
+        </div>
+
+        <div class="form-group">
+          <label for="editCategory">Kategori</label>
+          <select id="editCategory" class="form-control">
+            <option value="Makanan & Minuman">Makanan & Minuman</option>
+            <option value="Transportasi">Transportasi</option>
+            <option value="Belanja & Kebutuhan">Belanja & Kebutuhan</option>
+            <option value="Tagihan & Utilitas">Tagihan & Utilitas</option>
+            <option value="Hiburan">Hiburan</option>
+            <option value="Kesehatan">Kesehatan</option>
+            <option value="Pendidikan">Pendidikan</option>
+            <option value="Gaji">Gaji</option>
+            <option value="Bonus">Bonus</option>
+            <option value="Pemasukan Lain">Pemasukan Lain</option>
+            <option value="Lain-lain">Lain-lain</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="editDesc">Keterangan</label>
+          <input type="text" id="editDesc" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="editDate">Tanggal</label>
+          <input type="date" id="editDate" required class="form-control">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; height: 42px; margin-top: 8px;">
+          Simpan Perubahan
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const currentMonth = "{{.Month}}";
+    document.getElementById('modalDate').value = new Date().toISOString().split('T')[0];
+
+    function toggleModal() {
+      document.getElementById('modalSheet').classList.toggle('hidden');
+    }
+
+    async function toggleGSheetModal() {
+      const modal = document.getElementById('gsheetModal');
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        const textarea = document.getElementById('gsheetCode');
+        if (!textarea.value) {
+          try {
+            const res = await fetch('/api/gsheet-script');
+            textarea.value = await res.text();
+          } catch(e) {
+            textarea.value = '// Gagal mengambil template script: ' + e.message;
+          }
+        }
+      }
+    }
+
+    function toggleEditModal() {
+      document.getElementById('editModal').classList.toggle('hidden');
+    }
+
+    async function openEditModal(id) {
+      try {
+        const res = await fetch('/api/transactions/get?id=' + id);
+        if (!res.ok) throw new Error('Transaksi tidak ditemukan');
+        const tx = await res.json();
+
+        document.getElementById('editID').value = tx.id;
+        document.getElementById('editAmount').value = tx.amount;
+        document.getElementById('editDesc').value = tx.description || '';
+        document.getElementById('editDate').value = (tx.date || '').substring(0, 10);
+
+        const typeRadio = document.querySelector(`input[name="editType"][value="${tx.type}"]`);
+        if (typeRadio) typeRadio.checked = true;
+
+        const catSelect = document.getElementById('editCategory');
+        if (![...catSelect.options].some(o => o.value === tx.category)) {
+          catSelect.add(new Option(tx.category, tx.category));
+        }
+        catSelect.value = tx.category;
+
+        toggleEditModal();
+      } catch (err) {
+        alert('Gagal memuat transaksi: ' + err.message);
+      }
+    }
+
+    async function submitEdit(e) {
+      e.preventDefault();
+      const body = {
+        id: parseInt(document.getElementById('editID').value, 10),
+        type: document.querySelector('input[name="editType"]:checked').value,
+        amount: parseFloat(document.getElementById('editAmount').value),
+        category: document.getElementById('editCategory').value,
+        description: document.getElementById('editDesc').value,
+        date: document.getElementById('editDate').value
+      };
+
+      try {
+        const res = await fetch('/api/transactions/update', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (data.success) {
+          location.reload();
+        } else {
+          alert('Gagal: ' + (data.error || 'tidak diketahui'));
+        }
+      } catch (err) {
+        alert('Terjadi kesalahan: ' + err.message);
+      }
+    }
+
+    async function syncAllToSheets() {
+      const btn = document.getElementById('syncAllBtn');
+      if (!confirm('Tulis ulang SELURUH data lokal ke Google Sheets? Data lama di sheet akan diganti.')) return;
+      btn.disabled = true;
+      const original = btn.innerHTML;
+      btn.innerText = 'Menyinkronkan...';
+      try {
+        const res = await fetch('/api/gsheet-sync-all', {method: 'POST'});
+        const data = await res.json();
+        if (data.success) {
+          alert('Berhasil sinkron ' + data.synced + ' transaksi ke Google Sheets.');
+        } else {
+          alert('Gagal: ' + (data.error || 'tidak diketahui'));
+        }
+      } catch (err) {
+        alert('Koneksi gagal: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = original;
+      }
+    }
+
+    function copyGSheetCode() {
+      const textarea = document.getElementById('gsheetCode');
+      textarea.select();
+      navigator.clipboard.writeText(textarea.value);
+      alert('Kode Google Apps Script berhasil disalin!');
+    }
+
+    async function submitQuickAdd(e) {
+      e.preventDefault();
+      const input = document.getElementById('quickTextInput');
+      const text = input.value.trim();
+      const fb = document.getElementById('quickFeedback');
+      if (!text) return;
+
+      fb.style.display = 'block';
+      fb.style.color = 'var(--ink-muted)';
+      fb.innerText = 'Menyimpan...';
+
+      try {
+        const res = await fetch('/api/transactions', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({text})
+        });
+        const data = await res.json();
+        if (data.success) {
+          fb.style.color = 'var(--emerald)';
+          fb.innerText = '✓ Berhasil dicatat: ' + data.data.category + ' | Rp ' + Number(data.data.amount).toLocaleString('id-ID');
+          input.value = '';
+          setTimeout(() => location.reload(), 600);
+        } else {
+          fb.style.color = 'var(--rose)';
+          fb.innerText = 'Gagal: ' + (data.error || 'Format tidak sesuai');
+        }
+      } catch (err) {
+        fb.style.color = 'var(--rose)';
+        fb.innerText = 'Koneksi gagal: ' + err.message;
+      }
+    }
+
+    async function submitModal(e) {
+      e.preventDefault();
+      const type = document.querySelector('input[name="modalType"]:checked').value;
+      const amount = parseFloat(document.getElementById('modalAmount').value);
+      const category = document.getElementById('modalCategory').value;
+      const description = document.getElementById('modalDesc').value;
+      const date = document.getElementById('modalDate').value;
+
+      try {
+        const res = await fetch('/api/transactions', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({type, amount, category, description, date})
+        });
+        const data = await res.json();
+        if (data.success) {
+          location.reload();
+        } else {
+          alert('Gagal: ' + data.error);
+        }
+      } catch (err) {
+        alert('Terjadi kesalahan: ' + err.message);
+      }
+    }
+
+    async function deleteTx(id) {
+      if (!confirm('Hapus transaksi #' + id + '?')) return;
+      try {
+        const res = await fetch('/api/transactions/delete?id=' + id, {method: 'POST'});
+        const data = await res.json();
+        if (data.success) {
+          location.reload();
+        }
+      } catch (err) {
+        alert('Gagal menghapus: ' + err.message);
+      }
+    }
+
+    // Filter combines text search and type pill selection
+    function setTypeFilter(type, btn) {
+      // Update active class
+      document.querySelectorAll('.pill-btn').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      // Store current type in a data attribute
+      document.getElementById('searchTable').dataset.type = type;
+      filterTable();
+    }
+
+    function filterTable() {
+      const q = document.getElementById('searchTable').value.toLowerCase();
+      const type = document.getElementById('searchTable').dataset.type || 'all';
+      const rows = document.querySelectorAll('#txTable tbody tr');
+      rows.forEach(row => {
+        const matchText = row.innerText.toLowerCase().includes(q);
+        const matchType = (type === 'all') || (row.dataset.type === type);
+        row.style.display = (matchText && matchType) ? '' : 'none';
+      });
+    }
+
+    // Chart.js clean editorial styling
+    async function initCharts() {
+      try {
+        const res = await fetch('/api/stats?month=' + currentMonth);
+        const data = await res.json();
+
+        // 1. Arus Kas Bar Chart
+        const daily = data.daily || [];
+        const days = daily.map(d => d.day.split('-')[2]);
+        const inc = daily.map(d => d.income);
+        const exp = daily.map(d => d.expense);
+
+        const ctxTrend = document.getElementById('trendChart').getContext('2d');
+        new Chart(ctxTrend, {
+          type: 'bar',
+          data: {
+            labels: days,
+            datasets: [
+              {
+                label: 'Pemasukan',
+                data: inc,
+                backgroundColor: '#059669',
+                borderRadius: 2,
+                barPercentage: 0.6
+              },
+              {
+                label: 'Pengeluaran',
+                data: exp,
+                backgroundColor: '#DC2626',
+                borderRadius: 2,
+                barPercentage: 0.6
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'top',
+                align: 'end',
+                labels: { boxWidth: 10, font: { family: 'Plus Jakarta Sans', size: 11 } }
+              }
+            },
+            scales: {
+              x: { grid: { display: false }, ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: '#9CA3AF' } },
+              y: { grid: { color: '#F3F4F6' }, ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: '#9CA3AF' } }
+            }
+          }
+        });
+
+        // 2. Kategori Doughnut
+        const expCats = (data.categories || []).filter(c => c.type === 'expense');
+        const catLabels = expCats.map(c => c.category);
+        const catTotals = expCats.map(c => c.total);
+
+        const ctxCat = document.getElementById('categoryChart').getContext('2d');
+        new Chart(ctxCat, {
+          type: 'doughnut',
+          data: {
+            labels: catLabels.length ? catLabels : ['Belum ada pengeluaran'],
+            datasets: [{
+              data: catTotals.length ? catTotals : [1],
+              backgroundColor: catTotals.length ? [
+                '#0F172A', '#D97706', '#2563EB', '#059669', '#7C3AED', '#DB2777', '#6B7280'
+              ] : ['#E5E7EB'],
+              borderWidth: 2,
+              borderColor: '#FFFFFF'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { boxWidth: 8, font: { family: 'Plus Jakarta Sans', size: 11 } }
+              }
+            },
+            cutout: '68%'
+          }
+        });
+      } catch (err) {
+        console.error('Chart load error:', err);
+      }
+    }
+
+    initCharts();
+  </script>
+</body>
+</html>

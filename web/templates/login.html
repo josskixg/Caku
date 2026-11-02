@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caku: Masuk</title>
+  <link rel="icon" type="image/svg+xml" href="/static/icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F8F9FA;
+      --card: #FFFFFF;
+      --text: #191B1F;
+      --muted: #6C727F;
+      --border: #E5E7EB;
+      --ink-dark: #0F172A;
+      --accent: #059669;
+      --accent-hover: #047857;
+      --accent-soft: #ECFDF5;
+      --rose: #DC2626;
+      --rose-soft: #FEF2F2;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .serif { font-family: 'Newsreader', Georgia, serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px 36px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 10px 25px -5px rgba(15, 23, 42, 0.04);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .brand img {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+    }
+    .brand-title {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 26px;
+      font-weight: 500;
+      color: var(--ink-dark);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+    .brand-tag {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .intro {
+      margin-bottom: 24px;
+    }
+    .intro h2 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--ink-dark);
+      margin-bottom: 4px;
+    }
+    .intro p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .alert-error {
+      background: var(--rose-soft);
+      border: 1px solid #FECACA;
+      color: var(--rose);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+    .label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-dark);
+      margin-bottom: 6px;
+      letter-spacing: 0.01em;
+    }
+    .input {
+      width: 100%;
+      height: 40px;
+      padding: 0 14px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      font-size: 14px;
+      color: var(--ink-dark);
+      background: #FFFFFF;
+      outline: none;
+      transition: border-color 0.12s, box-shadow 0.12s;
+      font-family: inherit;
+    }
+    .input:focus {
+      border-color: var(--ink-dark);
+      box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+    }
+
+    .btn-submit {
+      width: 100%;
+      height: 42px;
+      background: var(--ink-dark);
+      color: #FFFFFF;
+      border: none;
+      padding: 0 18px;
+      border-radius: 9px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.12s;
+      margin-top: 8px;
+    }
+    .btn-submit:hover {
+      background: #1E293B;
+    }
+    .btn-submit:active { transform: translateY(1px); }
+
+    .footer-note {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      text-align: center;
+    }
+    .footer-note code {
+      font-family: 'JetBrains Mono', monospace;
+      background: #F1F5F9;
+      padding: 2px 5px;
+      border-radius: 4px;
+      color: var(--ink-dark);
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="brand">
+      <img src="/static/icon.svg" alt="Caku">
+      <div>
+        <div class="brand-title">Caku</div>
+        <div class="brand-tag">Buku Kas & Pengeluaran</div>
+      </div>
+    </div>
+
+    <div class="intro">
+      <h2>Masuk ke Dashboard</h2>
+      <p>Catatan keuangan harian, bulanan, dan sinkronisasi bot Telegram.</p>
+    </div>
+
+    {{if .Error}}
+    <div class="alert-error">
+      <span>{{.Error}}</span>
+    </div>
+    {{end}}
+
+    <form action="/login" method="POST">
+      <div class="field">
+        <label class="label" for="username">Username</label>
+        <input class="input" type="text" id="username" name="username" required autofocus placeholder="admin">
+      </div>
+
+      <div class="field">
+        <label class="label" for="password">Password</label>
+        <input class="input" type="password" id="password" name="password" required placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="btn-submit">
+        <span>Buka Dashboard</span>
+        <span>→</span>
+      </button>
+    </form>
+  </div>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-labelledby="cakuIconTitle">
+  <title id="cakuIconTitle">Caku</title>
+
+  <defs>
+    <linearGradient id="cakuBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#34D399"/>
+      <stop offset="1" stop-color="#10B981"/>
+    </linearGradient>
+    <linearGradient id="cakuCoin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FBBF24"/>
+      <stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(256 256) scale(1.42) translate(-273 -206.5)">
+    <!-- shadow -->
+    <ellipse cx="256" cy="352" rx="124" ry="14" fill="#0F172A" opacity="0.07"/>
+
+    <!-- feet -->
+    <rect x="176" y="310" width="64" height="40" rx="18" fill="#059669"/>
+    <rect x="272" y="310" width="64" height="40" rx="18" fill="#059669"/>
+
+    <!-- wallet body -->
+    <path d="M256 124C328 124 384 178 384 248V268C384 300 358 326 326 326H186C154 326 128 300 128 268V248C128 178 184 124 256 124Z" fill="url(#cakuBody)"/>
+    <ellipse cx="198" cy="176" rx="52" ry="30" fill="#FFFFFF" opacity="0.18" transform="rotate(-28 198 176)"/>
+
+    <!-- coin slot -->
+    <rect x="216" y="140" width="80" height="18" rx="9" fill="#047857" opacity="0.55"/>
+
+    <!-- face -->
+    <ellipse cx="208" cy="238" rx="16" ry="20" fill="#0F172A"/>
+    <circle cx="203" cy="231" r="6" fill="#FFFFFF"/>
+    <circle cx="214" cy="245" r="3" fill="#FFFFFF" opacity="0.7"/>
+    <ellipse cx="304" cy="238" rx="16" ry="20" fill="#0F172A"/>
+    <circle cx="299" cy="231" r="6" fill="#FFFFFF"/>
+    <circle cx="310" cy="245" r="3" fill="#FFFFFF" opacity="0.7"/>
+    <ellipse cx="170" cy="264" rx="22" ry="13" fill="#FB7185" opacity="0.55"/>
+    <ellipse cx="342" cy="264" rx="22" ry="13" fill="#FB7185" opacity="0.55"/>
+    <path d="M234 262Q256 284 278 262" fill="none" stroke="#0F172A" stroke-width="9" stroke-linecap="round"/>
+
+    <!-- gold coin with rising chart arrow -->
+    <g>
+      <circle cx="356" cy="92" r="38" fill="url(#cakuCoin)"/>
+      <circle cx="356" cy="92" r="29" fill="#FCD34D"/>
+      <path d="M338 104L352 90L362 98L374 80" fill="none" stroke="#0F172A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M368 80H377V89" fill="none" stroke="#0F172A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- sparkles -->
+    <path d="M0 -11C0.8 -3.5 3.5 -0.8 11 0C3.5 0.8 0.8 3.5 0 11C-0.8 3.5 -3.5 0.8 -11 0C-3.5 -0.8 -0.8 -3.5 0 -11Z" fill="#FBBF24" transform="translate(302 52) scale(0.95)"/>
+    <path d="M0 -11C0.8 -3.5 3.5 -0.8 11 0C3.5 0.8 0.8 3.5 0 11C-0.8 3.5 -3.5 0.8 -11 0C-3.5 -0.8 -0.8 -3.5 0 -11Z" fill="#F59E0B" opacity="0.8" transform="translate(414 150) scale(0.62)"/>
+  </g>
+</svg>
