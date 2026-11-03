@@ -99,7 +99,7 @@ func (b *Bot) Start() {
 
 		updates, err := b.getUpdates(offset)
 		if err != nil {
-			log.Printf("[TELEGRAM] Gagal fetch updates: %v. Retry 3s...\n", err)
+			log.Printf("[TELEGRAM] Gagal fetch updates: %s. Retry 3s...", strings.ReplaceAll(err.Error(), b.token, "***"))
 			time.Sleep(3 * time.Second)
 			continue
 		}
